@@ -3,16 +3,15 @@ package com.github.raymanrt.leila.csv;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexableField;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -23,6 +22,14 @@ import static org.apache.commons.lang3.StringUtils.substringBefore;
 
 
 public class CsvFormatter {
+
+    private static final String DEFAULT_FORMAT = "EXCEL";
+    private static final String DEFAULT_WITH_HEADER = "true";
+    private static final String DEFAULT_RECORD_SEPARATOR = ",";
+    private static final String DEFAULT_WITH_QUOTE = "\"";
+    private static final String DEFAULT_QUOTE_MODE = "MINIMAL";
+
+    private String DEFAULT_SEPARATOR = ",";
 
     private String[] columns;
     private CSVPrinter printer = null;
@@ -40,8 +47,50 @@ public class CsvFormatter {
     public CsvFormatter(String[] args) {
 
         String columnsFromArgs = args[0];
-        columns = split(columnsFromArgs, ",");
+        columns = split(columnsFromArgs, DEFAULT_SEPARATOR);
 
+        initColumnToParser();
+
+        System.out.println(":: [leila-csv] requested columns: " + columns);
+
+        try {
+            printer = new CSVPrinter(System.out, getFormat());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private CSVFormat getFormat() {
+
+        String requiredFormat = System.getProperty("leila.csv.format", DEFAULT_FORMAT);
+        System.out.println(":: [leila-csv] csv format: " + requiredFormat);
+        CSVFormat format = CSVFormat.Predefined.valueOf(requiredFormat).getFormat();
+
+        String withHeader = System.getProperty("leila.csv.withHeader", DEFAULT_WITH_HEADER);
+        System.out.println(":: [leila-csv] withHeader: " + withHeader);
+        boolean withHeaderBoolean = Boolean.parseBoolean(withHeader);
+        if(withHeaderBoolean) {
+            format.withHeader(columns);
+        }
+
+        String recordSeparator = System.getProperty("leila.csv.recordSeparator", DEFAULT_RECORD_SEPARATOR);
+        System.out.println(":: [leila-csv] recordSeparator: " + recordSeparator);
+        format.withRecordSeparator(recordSeparator);
+
+        String withQuote = System.getProperty("leila.csv.withQuote", DEFAULT_WITH_QUOTE);
+        char quoteChar = withQuote.charAt(0);
+        System.out.println(":: [leila-csv] withQuote: " + quoteChar);
+        format.withQuote(quoteChar);
+
+        String quoteMode = System.getProperty("leila.csv.quoteMode", DEFAULT_QUOTE_MODE);
+        System.out.println(":: [leila-csv] quoteMode: " + quoteMode);
+        format.withQuoteMode(QuoteMode.valueOf(quoteMode));
+
+        return format;
+
+    }
+
+    private void initColumnToParser() {
         columnToParser = new HashMap<>();
         for(int i = 0; i < columns.length; i++) {
             if(columns[i].contains(":")) {
@@ -54,14 +103,6 @@ public class CsvFormatter {
                     columnToParser.put(column, parsers.get(parser));
                 }
             }
-        }
-
-        System.out.println(":: [leila-csv] requested columns: " + columns);
-
-        try {
-            printer = new CSVPrinter(System.out, CSVFormat.EXCEL.withHeader(columns));
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -111,7 +152,7 @@ public class CsvFormatter {
         } catch(Exception ex) {
             ex.printStackTrace();
 
-            System.out.println(":: problems parsing :: " + StringUtils.join(values, ", "));
+            System.out.println(":: problems parsing :: " + StringUtils.join(values, DEFAULT_SEPARATOR));
 
             return "";
         }

@@ -44,12 +44,26 @@ generated jar in your classpath, for example:
 ```
 java -cp 'target/leila.jar:../leila-csv/target/leila-csv.jar' com.github.raymanrt.leila.Main \
     target/demo-index \
-    -p com.github.raymanrt.leila.csv.CsvFormatter
+    -f field1,field2
+    -p com.github.raymanrt.leila.csv.CsvFormatter field1,field2
 ```
 
 Please remember the syntax for the `-p` option:
 * the first argument is the path of the desired class
 * the following arguments are the builder parameters
+
+WARNING: every column to be printed should also be loaded with the standard leila's `-f` option
+
+In the case of leila-csv the builder arguments are the columns that will be present in the output.
+
+There are also some system properties to customize the csv output:
+* leila.csv.format : one of those supported by
+[commons-csv](https://commons.apache.org/proper/commons-csv/user-guide.html#Parsing_files) (default EXCEL)
+* leila.csv.withHeader: true or false, to decide if printing csv header into the output (default true)
+* leila.csv.recordSeparator: string to indicate the record separator (default `,`)
+* leila.csv.withQuote: single character to indicate quote character (default `"`)
+* leila.csv.quoteMode: one of those supported by
+[commons-csv](http://commons.apache.org/proper/commons-csv/apidocs/org/apache/commons/csv/QuoteMode.html) (default MINIMAL)
 
 Limits and desired functions
 ----------------------------
