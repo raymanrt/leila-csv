@@ -65,9 +65,28 @@ There are also some system properties to customize the csv output:
 * leila.csv.quoteMode: one of those supported by
 [commons-csv](http://commons.apache.org/proper/commons-csv/apidocs/org/apache/commons/csv/QuoteMode.html) (default MINIMAL)
 
+Parsers
+-------
+
+By default leila-csv tries to infer the datatype. If a field can be parsed as a number, it will be written as a number.
+Also boolean values are inferred if parsable.
+
+Multiple values are joined with `, ` separator.
+
+Missing values are treated as empty strings.
+
+You can declare a column custom parser, indicating with the following syntax: `column1,column2:parserName,column3`.
+
+The existing parsers are:
+* javatimestamp:
+convert a numeric java long
+[timestamp](https://docs.oracle.com/javase/7/docs/api/java/lang/System.html#currentTimeMillis())
+to a human readable
+[ISO local datetime](https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_LOCAL_DATE_TIME)
+.
+
 Limits and desired functions
 ----------------------------
 
-* *leila-csv* considers each document as having only String values (or list of String values);
-with more configuration it should be easy make it cast one or more fields to some custom type;
-also some kind of type inference could be considered
+* I'd like to add more parser
+* more testing is required
